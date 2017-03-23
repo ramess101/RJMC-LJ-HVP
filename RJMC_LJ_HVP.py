@@ -188,7 +188,11 @@ print('Acceptance Rate during production for eps, sig, t: '+str(acc_tuned))
 
 print('Acceptance model swap during production: '+str(model_swaps/(n_iter-tune_for)))
 
-print('Percent that 1-parameter model is sampled: '+str(model_count[1]*100./(n_iter-tune_for))) #The percent that use 1 parameter model
+p_1 = 1.*model_count[1]/(n_iter-tune_for)
+print('Percent that 1-parameter model is sampled: '+str(p_1 * 100.)) #The percent that use 1 parameter model
+
+BF_1 = 1./(1./p_1 - 1)
+print('Bayes Factor for 1-parameter model: '+str(BF_1)) # A value greater than 10 is strong evidence
         
 for param, samples in zip(['$\epsilon (K)$', '$\sigma (nm)$', 'precision'], trace_all.T):
     f, axes = plt.subplots(1, 2, figsize=(10,4))
