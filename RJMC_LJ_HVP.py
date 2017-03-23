@@ -20,18 +20,16 @@ from scipy.stats import distributions
 compound="argon"
 fname = compound+".yaml"
 
+# Load property values for compound
+
 with open(fname) as yfile:
     yfile = yaml.load(yfile)
 
 eps_lit = yfile["force_field_params"]["eps_lit"] #[K]
 sig_lit = yfile["force_field_params"]["sig_lit"] #[nm]
-
-# Values taken from RefProp
-# Note that this is just an example file, a more robust code will allow for
-# RefProp to be called as a function.
-T_c_RP = 150.687 #[K]
-rho_c_RP = 535.599 #[kg/m3]
-M_w = 39.948 #[gm/mol]
+T_c_RP = yfile["physical_constants"]["T_c"] #[K]
+rho_c_RP = yfile["physical_constants"]["rho_c"] #[kg/m3]
+M_w = yfile["physical_constants"]["M_w"] #[gm/mol]
 
 # Initial guesses for epsilon and sigma are obtained from the critical constants
 eps_T_c = T_c_RP / T_c_star #[K]
