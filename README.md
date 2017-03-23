@@ -22,10 +22,13 @@ Percent that 1-parameter model is sampled: 75.4
 
 Typical plots of the results are found as PDF files.
 
-argon_Model_Params_RJMC.pdf depicts the number of parameters in the model for each iteration and a histogram comparison.
-argon_Prop_RJMC.pdf presents the uncertainty in HVP according to the predictive posterior
-argon_Trace_RJMC.pdf depicts the trace for epsilon, sigma, and t (the precision, i.e. 1/variance)
-argon_Trajectory_RJMC.pdf depicts the trajectory through the parameter space of accepted moves
+  argon_Model_Params_RJMC.pdf depicts the number of parameters in the model for each iteration and a histogram comparing the prevalency of the two models
+  
+  argon_Prop_RJMC.pdf presents the uncertainty in HVP according to the predictive posterior
+  
+  argon_Trace_RJMC.pdf depicts the trace for epsilon, sigma, and t (the precision, i.e. 1/variance)
+  
+  argon_Trajectory_RJMC.pdf depicts the trajectory through the parameter space of accepted moves
 
 The primary questions are:
 
