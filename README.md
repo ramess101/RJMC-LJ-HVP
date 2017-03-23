@@ -34,6 +34,6 @@ Typical plots of the results are found as PDF files.
 
 The primary questions are:
 
-1. Why is the 1-parameter model only sampled 75% of the time? Should this value not be higher? Specifically, this value yields a Base Factor of 3 for 1-parameter which is "barely worth mentioning" level of evidence.
+1. Why is the 1-parameter model only sampled 75% of the time? Should this value not be higher? Specifically, this value yields a Bayes Factor of 3 for the 1-parameter model which is "barely worth mentioning" level of evidence.
 2. How can we improve the algorithm? For example, the frequency of model swaps, the priors, etc.
 3. Is our acceptance criterion rigorous?
