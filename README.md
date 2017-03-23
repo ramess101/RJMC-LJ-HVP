@@ -29,6 +29,6 @@ argon_Trajectory_RJMC.pdf depicts the trajectory through the parameter space of 
 
 The primary questions are:
 
-Why is the 1-parameter model only sampled 75% of the time? Should this value not be higher?
-How can we improve the algorithm?
-Is our acceptance criterion rigorous?
+1. Why is the 1-parameter model only sampled 75% of the time? Should this value not be higher?
+2. How can we improve the algorithm?
+3. Is our acceptance criterion rigorous?
