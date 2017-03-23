@@ -16,9 +16,9 @@ Both models have been given an equal probability and the Jacobian has a value of
 
 The results that are typically obtained from running this code are:
 
-Acceptance Rate during production for eps, sig, t: [ 0.30809091  0.3232159   0.37290909]
-Acceptance model swap during production: [ 0.24236364]
-Percent that 1-parameter model is sampled: 75.3909090909
+Acceptance Rate during production for eps, sig, t: [ 0.31  0.32   0.37]
+Acceptance model swap during production: [ 0.24]
+Percent that 1-parameter model is sampled: 75.4
 
 Typical plots of the results are found as PDF files.
 
