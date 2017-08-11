@@ -48,6 +48,7 @@ data_t = 1 # Precision in data (1/SD**2)
 guess = (eps_T_c, sig_rho_c, 1) # Epsilon, Sigma, Precision
 # Initial estimates for standard deviation used in proposed distributions of MCMC
 guess_var = [1, 0.1, 0.2]
+prior_var = [5,0.001]
 
 # Simplify notation
 dnorm = distributions.norm.logpdf
@@ -60,8 +61,8 @@ def calc_posterior(eps, sig, t):
 
     logp = 0
     #Priors on eps, sig
-    logp += dnorm(sig, guess[1], 0.01)
-    logp += dnorm(eps, guess[0], 1) 
+    logp += dnorm(sig, guess[1], prior_var[1])
+    logp += dnorm(eps, guess[0], prior_var[0]) 
     # Prior on t (precision)
     logp += dgamma(t, 0.01, 0.01)
     # Calculate property value for given eps, sig
