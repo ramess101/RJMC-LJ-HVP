@@ -104,7 +104,7 @@ def RJMC_tuned(calc_posterior,n_iterations, initial_values, prop_var,
     
     for i in range(n_iterations):
     
-        if not i%1000: print 'Iteration', i
+        if not i%1000: print('Iteration', i)
     
         # Grab current parameter values
         current_params = trace[i].copy()
