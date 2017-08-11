@@ -31,10 +31,11 @@ T_c_RP = yfile["physical_constants"]["T_c"] #[K]
 rho_c_RP = yfile["physical_constants"]["rho_c"] #[kg/m3]
 M_w = yfile["physical_constants"]["M_w"] #[gm/mol]
 
-# Initial guesses for epsilon and sigma are obtained from the critical constants
+# Epsilon and sigma can be obtained from the critical constants
 eps_T_c = T_c_RP / T_c_star #[K]
 sig_rho_c = (rho_c_star / rho_c_RP *  M_w  / N_A * m3_to_nm3 * gm_to_kg)**(1./3) #[nm]
 
+# Load REFPROP data from file so that user does not need REFPROP
 data = np.array(pd.read_csv('HVP_data_argon.csv'))
 T = data[:,0] #[K]
 RP_HVP = data[:,1] #[kJ/mol]
@@ -45,9 +46,11 @@ prop_fit_hat = lambda T, eps, sig: HVP_hat_LJ(T,eps)
 data_t = 1 # Precision in data (1/SD**2)
 
 # Initial values for the Markov Chain
-guess = (eps_T_c, sig_rho_c, 1) # Epsilon, Sigma, Precision
+#guess = (eps_T_c, sig_rho_c, 1) # Can use critical constants
+guess = (110,0.345,1) # Or user specified values
 # Initial estimates for standard deviation used in proposed distributions of MCMC
 guess_var = [1, 0.1, 0.2]
+# Variance (or standard deviation, need to verify which one it is) in priors for epsilon and sigma
 prior_var = [5,0.001]
 
 # Simplify notation
@@ -179,6 +182,7 @@ def RJMC_tuned(calc_posterior,n_iterations, initial_values, prop_var,
                 
     return trace, trace[tune_for:], accept_prod, model_change, model_params
 
+# Set the number of iterations to run RJMC and how long to tune for
 n_iter = 20000
 tune_for = 9000
 trace_all,trace_tuned, acc_tuned, model_swaps, model_params = RJMC_tuned(calc_posterior, n_iter, guess, prop_var=guess_var, tune_for=tune_for)
@@ -194,7 +198,8 @@ print('Percent that 1-parameter model is sampled: '+str(p_1 * 100.)) #The percen
 
 BF_1 = 1./(1./p_1 - 1)
 print('Bayes Factor for 1-parameter model: '+str(BF_1)) # A value greater than 10 is strong evidence
-   
+
+# Create plots of the Markov Chain values for epsilon, sigma, and precision     
 f, axes = plt.subplots(3, 2, figsize=(6,6))     
 for param, samples, samples_tuned, iparam in zip(['$\epsilon (K)$', '$\sigma (nm)$', 'precision'], trace_all.T,trace_tuned.T, [0,1,2]):
     axes[iparam,0].plot(samples)
@@ -208,6 +213,7 @@ plt.tight_layout(pad=0.2)
 
 f.savefig(compound+"_Trace_RJMC.pdf")
 
+# Create plots to visualize how often it uses the one parameter (eps) and two parameter (eps/sig) model
 f, axes = plt.subplots(1, 2, figsize=(10,4))
 axes[0].scatter(np.arange(0,n_iter+1),model_params,s=0.01)
 axes[0].set_ylabel('Number of Parameters')
@@ -217,17 +223,7 @@ plt.tight_layout(pad=0.2)
 
 f.savefig(compound+"_Model_Params_RJMC.pdf")
 
-#f = plt.figure()
-#plt.scatter(trace_tuned[:,1],trace_tuned[:,0],label='Bayesian')
-#plt.scatter(sig_lit,eps_lit,label='Literature')
-#plt.scatter(sig_rho_c,eps_T_c,label='Critical Point')
-#plt.scatter(guess[1],guess[0],label='Guess')
-#plt.xlabel('$\sigma (nm)$')
-#plt.ylabel('$\epsilon (K)$')
-#plt.legend()
-#
-#f.savefig(compound+"_Param_RJMC.pdf")  
-
+# Plot the eps and sig parameters that are sampled and compare with literature, critical point, and guess values
 f = plt.figure()
 plt.scatter(trace_all[:,1],trace_all[:,0],label='Trajectory')
 plt.scatter(trace_tuned[:,1],trace_tuned[:,0],label='Production')
@@ -242,6 +238,7 @@ f.savefig(compound+"_Trajectory_RJMC.pdf")
 
 T_plot = np.linspace(T.min(), T.max())
    
+# Plot the predicted HVP versus REFPROP. Include the Bayesian uncertainty by sampling a subset of 100 eps/sig.
 f = plt.figure()
 
 plt.plot(T,RP_HVP,'k--',label='RefProp')
