@@ -47,7 +47,7 @@ data_t = 1 # Precision in data (1/SD**2)
 # Initial values for the Markov Chain
 guess = (eps_T_c, sig_rho_c, 1) # Epsilon, Sigma, Precision
 # Initial estimates for standard deviation used in proposed distributions of MCMC
-guess_var = [1, 0.01, 0.2]
+guess_var = [1, 0.1, 0.2]
 
 # Simplify notation
 dnorm = distributions.norm.logpdf
@@ -104,7 +104,7 @@ def RJMC_tuned(calc_posterior,n_iterations, initial_values, prop_var,
     
     for i in range(n_iterations):
     
-        if not i%1000: print('Iteration', i)
+        if not i%1000: print('Iteration '+str(i))
     
         # Grab current parameter values
         current_params = trace[i].copy()
@@ -193,12 +193,15 @@ print('Percent that 1-parameter model is sampled: '+str(p_1 * 100.)) #The percen
 
 BF_1 = 1./(1./p_1 - 1)
 print('Bayes Factor for 1-parameter model: '+str(BF_1)) # A value greater than 10 is strong evidence
-        
-for param, samples in zip(['$\epsilon (K)$', '$\sigma (nm)$', 'precision'], trace_all.T):
-    f, axes = plt.subplots(1, 2, figsize=(10,4))
-    axes[0].plot(samples)
-    axes[0].set_ylabel(param)
-    axes[1].hist(samples)
+   
+f, axes = plt.subplots(3, 2, figsize=(6,6))     
+for param, samples, samples_tuned, iparam in zip(['$\epsilon (K)$', '$\sigma (nm)$', 'precision'], trace_all.T,trace_tuned.T, [0,1,2]):
+    axes[iparam,0].plot(samples)
+    axes[iparam,0].set_ylabel(param)
+    axes[iparam,0].set_xlabel('Iteration')
+    axes[iparam,1].hist(samples_tuned)
+    axes[iparam,1].set_xlabel(param)
+    axes[iparam,1].set_ylabel('Count')
     
 plt.tight_layout(pad=0.2)
 
