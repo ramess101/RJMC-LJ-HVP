@@ -69,10 +69,10 @@ def calc_posterior(eps, sig):
 
     logp = 0
     #Priors on eps, sig
-#    logp += dnorm(sig, guess[1], prior_var[1])
+    logp += dnorm(sig, guess[1], prior_var[1])
 #    logp += dnorm(eps, guess[0], prior_var[0]) 
     # Using noninformative priors
-    logp += duni(sig, 0, 1)
+#    logp += duni(sig, 0, 1)
     logp += duni(eps, 0,1000) 
     # Prior on t (precision)
 #    logp += dgamma(t, 0.01, 0.01)
@@ -107,6 +107,8 @@ def RJMC_tuned(calc_posterior,n_iterations, initial_values, prop_var,
     model_params[0] = 1
     model_change = 0
     sigma_change = 0
+#    count1 = 0 #Used for debugging purposes
+#    count2 = 0
     
     # Calculate joint posterior for initial values
     current_log_prob = calc_posterior(*trace[0])
@@ -147,7 +149,17 @@ def RJMC_tuned(calc_posterior,n_iterations, initial_values, prop_var,
     
             # Log-acceptance rate (all other terms in RJMC are 1 in this case)
             alpha = proposed_log_prob - current_log_prob
-    
+            # Debugging why alpha is -inf for certain parameter sets when using uniform prior
+            # Appears to be 2:1 probability of being 0 or -inf
+#            if i > tune_for and j==1: 
+#                if alpha < 0:
+##                    print(alpha)
+##                    print(p,theta)
+##                    print(prop_sd[j])
+#                    count2 += 1
+#                elif alpha == 0:
+#                    count1 += 1
+            
             # Sample a uniform random variate
             u = runif()
     
@@ -161,7 +173,7 @@ def RJMC_tuned(calc_posterior,n_iterations, initial_values, prop_var,
                     model_params[i+1] = proposed_model #Keep track of which model is used for each step
                     if i > tune_for:
                         model_change += abs(current_model-proposed_model) #Keep track of how often model changes during production
-                        #print('Change in logp= '+str(alpha)) #alpha is always 0 because the likelihood and prior of the two models are identical
+#                        print('Change in logp= '+str(alpha)) #alpha is always 0 because the likelihood and prior of the two models are identical
                     if proposed_model == 2:
                         accepted[j] += 1 #Count accepted sigma changes only if sigma actually was a parameter
                 else:
@@ -171,6 +183,7 @@ def RJMC_tuned(calc_posterior,n_iterations, initial_values, prop_var,
                 trace[i+1,j] = trace[i,j]
                 if j == 1:
                     model_params[i+1] = current_model
+#                    if i > tune_for: print('Rejected model swap')
             
             # Tune every 100 iterations
             if (not (i+1) % tune_interval) and (i < tune_for):
@@ -188,6 +201,8 @@ def RJMC_tuned(calc_posterior,n_iterations, initial_values, prop_var,
                 accepted[j] = 0              
                         
     accept_prod = np.array([accepted[0]/(n_iterations - tune_for),accepted[1]/sigma_change])
+#    print(count1,count2)
+    print('Proposed standard deviations are: '+str(prop_sd))
                 
     return trace, trace[tune_for:], accept_prod, model_change, model_params
 
@@ -197,7 +212,7 @@ tune_for = 9000
 trace_all,trace_tuned, acc_tuned, model_swaps, model_params = RJMC_tuned(calc_posterior, n_iter, guess, prop_var=guess_var, tune_for=tune_for)
 
 # Converts the array with number of model parameters into an array with the number of times there was 1 parameter or 2 parameters
-model_count = np.array([np.count_nonzero(model_params[tune_for:]-1),np.count_nonzero(model_params[tune_for:]-2)])
+model_count = np.array([np.count_nonzero(model_params[tune_for+1:]-1),np.count_nonzero(model_params[tune_for+1:]-2)])
 
 print('Acceptance Rate during production for eps, sig, t: '+str(acc_tuned))
 
