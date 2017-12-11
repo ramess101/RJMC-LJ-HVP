@@ -1,5 +1,4 @@
-### This is a yaml file with all the Refprop values, force field parameters,
-### simulation temperatures, and other physical constants for Argon
+### This is a yaml file with the parameters found in Lotfi et al.
 
 correlation_parameters:
 
