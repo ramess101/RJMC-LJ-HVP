@@ -43,35 +43,43 @@ RP_HVP = data[:,1] #[kJ/mol]
 # Specify property and LJ correlation model used in analysis (HVP)
 prop_fit = RP_HVP
 prop_fit_hat = lambda T, eps, sig: HVP_hat_LJ(T,eps)
-data_t = 1 # Precision in data (1/SD**2)
+data_t = 4 # Precision in data (1/SD**2) # The value of 4 was obtained by including t as a variable in MCMC. 
 
 # Initial values for the Markov Chain
 #guess = (eps_T_c, sig_rho_c, 1) # Can use critical constants
-guess = (110,0.345,1) # Or user specified values
+#guess = (110,0.345,1) # Or user specified values
+## Initial estimates for standard deviation used in proposed distributions of MCMC
+#guess_var = [1, 0.1, 0.2]
+# No longer using precision as a parameter (i.e. just epsilon and sigma):
+guess = (110,0.345) # Or user specified values
 # Initial estimates for standard deviation used in proposed distributions of MCMC
-guess_var = [1, 0.1, 0.2]
+guess_var = [1, 0.05]
 # Variance (or standard deviation, need to verify which one it is) in priors for epsilon and sigma
 prior_var = [5,0.001]
 
 # Simplify notation
 dnorm = distributions.norm.logpdf
 dgamma = distributions.gamma.logpdf
+duni = distributions.uniform.logpdf
 
 rnorm = np.random.normal
 runif = np.random.rand
 
-def calc_posterior(eps, sig, t):
+def calc_posterior(eps, sig):
 
     logp = 0
     #Priors on eps, sig
-    logp += dnorm(sig, guess[1], prior_var[1])
-    logp += dnorm(eps, guess[0], prior_var[0]) 
+#    logp += dnorm(sig, guess[1], prior_var[1])
+#    logp += dnorm(eps, guess[0], prior_var[0]) 
+    # Using noninformative priors
+    logp += duni(sig, 0, 1)
+    logp += duni(eps, 0,1000) 
     # Prior on t (precision)
-    logp += dgamma(t, 0.01, 0.01)
+#    logp += dgamma(t, 0.01, 0.01)
     # Calculate property value for given eps, sig
     prop_hat = prop_fit_hat(T,eps,sig) # With HVP
     # Data likelihood
-    logp += sum(dnorm(prop_fit, prop_hat, t**-2)) # With HVP
+    logp += sum(dnorm(prop_fit, prop_hat, data_t**-2)) # With HVP
     
     return logp
 
@@ -153,6 +161,7 @@ def RJMC_tuned(calc_posterior,n_iterations, initial_values, prop_var,
                     model_params[i+1] = proposed_model #Keep track of which model is used for each step
                     if i > tune_for:
                         model_change += abs(current_model-proposed_model) #Keep track of how often model changes during production
+                        #print('Change in logp= '+str(alpha)) #alpha is always 0 because the likelihood and prior of the two models are identical
                     if proposed_model == 2:
                         accepted[j] += 1 #Count accepted sigma changes only if sigma actually was a parameter
                 else:
@@ -178,7 +187,7 @@ def RJMC_tuned(calc_posterior,n_iterations, initial_values, prop_var,
 
                 accepted[j] = 0              
                         
-    accept_prod = np.array([accepted[0]/(n_iterations - tune_for),accepted[1]/sigma_change,accepted[2]/(n_iterations - tune_for)])
+    accept_prod = np.array([accepted[0]/(n_iterations - tune_for),accepted[1]/sigma_change])
                 
     return trace, trace[tune_for:], accept_prod, model_change, model_params
 
@@ -187,6 +196,7 @@ n_iter = 20000
 tune_for = 9000
 trace_all,trace_tuned, acc_tuned, model_swaps, model_params = RJMC_tuned(calc_posterior, n_iter, guess, prop_var=guess_var, tune_for=tune_for)
 
+# Converts the array with number of model parameters into an array with the number of times there was 1 parameter or 2 parameters
 model_count = np.array([np.count_nonzero(model_params[tune_for:]-1),np.count_nonzero(model_params[tune_for:]-2)])
 
 print('Acceptance Rate during production for eps, sig, t: '+str(acc_tuned))
@@ -200,8 +210,8 @@ BF_1 = 1./(1./p_1 - 1)
 print('Bayes Factor for 1-parameter model: '+str(BF_1)) # A value greater than 10 is strong evidence
 
 # Create plots of the Markov Chain values for epsilon, sigma, and precision     
-f, axes = plt.subplots(3, 2, figsize=(6,6))     
-for param, samples, samples_tuned, iparam in zip(['$\epsilon (K)$', '$\sigma (nm)$', 'precision'], trace_all.T,trace_tuned.T, [0,1,2]):
+f, axes = plt.subplots(2, 2, figsize=(6,6))     
+for param, samples, samples_tuned, iparam in zip(['$\epsilon (K)$', '$\sigma (nm)$'], trace_all.T,trace_tuned.T, [0,1]):
     axes[iparam,0].plot(samples)
     axes[iparam,0].set_ylabel(param)
     axes[iparam,0].set_xlabel('Iteration')
@@ -244,7 +254,7 @@ f = plt.figure()
 plt.plot(T,RP_HVP,'k--',label='RefProp')
 
 for i in range(100): #Plot 100 random samples from production
-    eps_sample, sig_sample, t_sample = trace_tuned[np.random.randint(0, n_iter - tune_for)]
+    eps_sample, sig_sample = trace_tuned[np.random.randint(0, n_iter - tune_for)]
     HVP_sample = HVP_hat_LJ(T_plot,eps_sample)
     
     plt.plot(T_plot,HVP_sample,'r',label='LJ')
