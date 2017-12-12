@@ -1,4 +1,5 @@
 # RJMC-LJ-HVP
+*** This project is no longer of interest. Please go to RJMC_LJ_Ethane repository. ***
 Reversible Jump MCMC for the Lennard-Jones fluid when predicting Heat of Vaporization
 
 The main code is "RJMC_LJ_HVP.py". This file:
